@@ -1,46 +1,90 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+  <div style="padding: 10em">
+    <select name="" id="" v-model="limit" @change="getAllPost">
+      <option value="5">Choose your results</option>
+      <option value="10">10 results</option>
+      <option value="15">15 results</option>
+      <option value="20">20 results</option>
+    </select>
+    <div class="hello" :key="p.id" v-for="p in posts">
+      <div :id="p.id">
+        <div style="display: flex; justify-content: space-between; width: 80%">
+          <div>
+            <div>
+              <h1>{{ p.title }}</h1>
+            </div>
+            <div>
+              <p>{{ p.content }}</p>
+            </div>
+          </div>
+          <div>
+            <p>Edit</p>
+            <p>Remove</p>
+          </div>
+        </div>
+        <img width="80%" :src="p.image" alt="" srcset="" />
+      </div>
+      <div style="display: flex">
+        <p style="padding: 20px" @click="generateCount('like')">
+          Like : {{ p.like }}
+        </p>
+        <p style="padding: 20px" @click="generateCount('dislike')">
+          Dislike : {{ p.dislike }}
+        </p>
+      </div>
+    </div>
+    <div>
+      <p>Page :{{ page / 5 }}</p>
+      <button @click="getAllPost">Next</button>
+    </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
+<script lang="ts">
+import { Component, Vue, Watch } from "vue-property-decorator";
+import axios from "axios";
+import { PostResponse } from "../store/data";
+@Component
+export default class HelloWorld extends Vue {
+  // @Prop() private posts: PostResponse[];
+  posts: PostResponse[] = [];
+  like: number = 0;
+  dislike: number = 0;
+  page: number = 0;
+  limit: number = 5;
+  getAllPost() {
+    console.log(this.page);
+    const path =
+      "http://localhost:4444/post?skip=" + this.page + "&limit=" + this.limit;
+    console.log(path);
+
+    axios.get(path).then((res) => {
+      console.log(res.data);
+      this.posts = res.data;
+      this.page += 5;
+      window.scrollTo(0, 0);
+    });
+  }
+  created() {
+    this.getAllPost();
+  }
+  @Watch("posts")
+  onPostsChange() {
+    console.log("posts changed");
+    // this.getAllPost();
+  }
+  generateCount(type: string) {
+    if (type === "like") {
+      this.like++;
+    } else {
+      this.dislike++;
+    }
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style scoped lang="scss">
 h3 {
   margin: 40px 0 0;
 }
